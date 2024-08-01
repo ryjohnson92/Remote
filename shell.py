@@ -29,21 +29,12 @@ class cmd:
         })
         pass
     def __enter__(self):
-        """
-        Description of __enter__
-
-        Args:
-            self (undefined):
-
-        """
         if self.__root:
             self.process = subprocess.Popen(self.__root_cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
         else:
             self.process = subprocess.Popen(self.__cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
         
         if self.iter:
-            # print('Self iter')
-            # self.lines = str(self.process.stdout.read()).split('\n')
             return self
         else:
             text = self.process.stdout.read()
@@ -57,11 +48,6 @@ class cmd:
             yield line.rstrip()
         pass
     def __exit__(self,a,b,c):
-        try:
-            pass
-            # os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
-        except Exception as err:
-            print(err)
         pass
     
     @staticmethod
@@ -78,7 +64,7 @@ ________________________________________________________________________________
 Simple usage
 ______________________________________________________________________________________________
 
-from Remote_Connection.shell import cmd
+from Remote.shell import cmd
 with cmd('ls',server='server.my.com',keyfile='./myrootkey',user='root') as cmd:
     print(cmd)
 ______________________________________________________________________________________________    
