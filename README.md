@@ -8,7 +8,7 @@ This module will aid in properly executing remote SSH commands against remote ho
 
 ### Simple
 ```python
-from Remote_Connection.shell import cmd
+from Remote.shell import cmd
 with cmd('ls',server='server.my.com',keyfile='./myrootkey',user='root') as cmd:
     print(cmd)
 ```
