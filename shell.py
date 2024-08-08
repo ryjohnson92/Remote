@@ -13,7 +13,7 @@ class cmd:
     """
     def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str=''):        
         self.iter = listen
-        self.__cmd = '''ssh -i  {user_key} {user}@{server} {cmd}'''.format.format(**{
+        self.__cmd = '''ssh -i  {user_key} {user}@{server} {cmd}'''.format(**{
             "user_key":keyfile,
             "user":user,
             'server': server,
