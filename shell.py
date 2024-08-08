@@ -13,12 +13,7 @@ class cmd:
     """
     def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str=''):        
         self.iter = listen
-        self.__cmd = '''ssh -i  {user_key} {user}@{server} {cmd}'''.format(**{
-            "user_key":keyfile,
-            "user":user,
-            'server': server,
-            "cmd":self.__cmd
-        })
+        self.__cmd = cmd
         self.__root = root
         self.shell = True
         self.__root_cmd = '''ssh -i  {user_key} {user}@{server} "sudo su root -c '{cmd}'"'''.format(**{
@@ -29,12 +24,21 @@ class cmd:
         })
         pass
     def __enter__(self):
+        """
+        Description of __enter__
+
+        Args:
+            self (undefined):
+
+        """
         if self.__root:
             self.process = subprocess.Popen(self.__root_cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
         else:
             self.process = subprocess.Popen(self.__cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
         
         if self.iter:
+            # print('Self iter')
+            # self.lines = str(self.process.stdout.read()).split('\n')
             return self
         else:
             text = self.process.stdout.read()
@@ -48,6 +52,11 @@ class cmd:
             yield line.rstrip()
         pass
     def __exit__(self,a,b,c):
+        try:
+            pass
+            # os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+        except Exception as err:
+            print(err)
         pass
     
     @staticmethod
@@ -64,15 +73,15 @@ ________________________________________________________________________________
 Simple usage
 ______________________________________________________________________________________________
 
-from Remote.shell import cmd
-with cmd('ls',server='server.my.com',keyfile='./myrootkey',user='root') as cmd:
+from Remote_Connection.shell import cmd
+with cmd('ls',server='tc-web-app1-bri.telmate.cc',keyfile='./mykeyfile',user='root') as cmd:
     print(cmd)
 ______________________________________________________________________________________________    
 
 Iteration
 ______________________________________________________________________________________________
 
-with cmd('ls',server='server.my.com',listen=True,keyfile='./myrootkey',user='root') as cmd:
+with cmd('ls',server='my-server.telmate.cc',listen=True,keyfile='./infra2016',user='root') as cmd:
     for result in cmd:
         print(result)
 ______________________________________________________________________________________________            
