@@ -38,7 +38,7 @@ Simple usage
 The following uses the subclass init function to pass credentials
 ______________________________________________________________________________________________
 
-from Telmate.mysql import connection
+from Remote.mysql import connection
 class my_query(connection):
     def __init__(self, payload):
         super().__init__(payload,'192.168.255.255','your_user','your_password')
@@ -55,7 +55,7 @@ The following examples use a child class to assign credentials, if you are using
 times or for multiple connection / query types this is often the best usage.
 ______________________________________________________________________________________________
 
-from Telmate.mysql import connection
+from Remote.mysql import connection
 
 class my_local_connection(connection):
     def __init__(self, payload):
