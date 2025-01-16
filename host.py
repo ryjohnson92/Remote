@@ -1,14 +1,17 @@
 import re
+
 from Remote.shell import cmd as rs_cmd
 
+
 class host:
+     
     def __init__(self,server,keyfile,user):
         self.server = server
         self.keyfile = keyfile
         self.user = user
         self.is_reachable = self.__self_reachable__
         self.ping_peer = self.__self_ping_peer__
-    
+
     def cmd(self,cmd):
         return rs_cmd(cmd,True,self.server,keyfile=self.keyfile,user=self.user)
 
