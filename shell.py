@@ -74,14 +74,14 @@ Simple usage
 ______________________________________________________________________________________________
 
 from Remote_Connection.shell import cmd
-with cmd('ls',server='tc-web-app1-bri.telmate.cc',keyfile='./mykeyfile',user='root') as cmd:
+with cmd('ls',server='webapp1',keyfile='./mykeyfile',user='root') as cmd:
     print(cmd)
 ______________________________________________________________________________________________    
 
 Iteration
 ______________________________________________________________________________________________
 
-with cmd('ls',server='my-server.telmate.cc',listen=True,keyfile='./infra2016',user='root') as cmd:
+with cmd('ls',server='my-server.',listen=True,keyfile='./infra2016',user='root') as cmd:
     for result in cmd:
         print(result)
 ______________________________________________________________________________________________            
