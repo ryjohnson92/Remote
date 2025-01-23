@@ -16,7 +16,7 @@ class host:
         return rs_cmd(cmd,True,self.server,keyfile=self.keyfile,user=self.user)
 
     def __bool__(self):
-        return __self_reachable__()
+        return self.__self_reachable__()
     #################### reachable  #################################################
     def __self_reachable__(self):
         return self.__reachable__(self.server,self.keyfile,self.user)
