@@ -9,19 +9,22 @@ class cmd:
             Listen (bool): Creates / allows for iteration!
             keyfile (str): Path to key file
             user (str): user to enter remote device as 
+            ssh_flags (dict): pass additional flags to ssh flag:value
 
     """
-    def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str='',flags:dict={}):        
+    def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str='',ssh_flags:dict={}):        
         self.iter = listen
         self.__cmd = cmd
         self.__root = root
         self.shell = True
+        assert type(ssh_flags) == dict,'Must pass dict object with flag:value'
+        self.flags = [f"{x} {ssh_flags[x]}" for x in ssh_flags]
         self.__root_cmd = '''ssh -i  {user_key} {flags} {user}@{server} "sudo su root -c '{cmd}'"'''.format(**{
             "user_key":keyfile,
             "user":user,
             'server': server,
             "cmd":self.__cmd,
-            "flags":"".join([f"{x} {flags[x]}" for x in flags])
+            "flags":" ".join(self.flags)
         })
         pass
     def __enter__(self):

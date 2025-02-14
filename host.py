@@ -12,8 +12,8 @@ class host:
         self.is_reachable = self.__self_reachable__
         self.ping_peer = self.__self_ping_peer__
 
-    def cmd(self,cmd,flags:dict={}):
-        return rs_cmd(cmd,True,self.server,keyfile=self.keyfile,user=self.user,flags=flags)
+    def cmd(self,cmd,ssh_flags:dict={}):
+        return rs_cmd(cmd,True,self.server,keyfile=self.keyfile,user=self.user,ssh_flags=ssh_flags)
 
     def __bool__(self):
         return self.__self_reachable__()
