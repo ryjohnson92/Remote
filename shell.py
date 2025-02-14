@@ -11,16 +11,17 @@ class cmd:
             user (str): user to enter remote device as 
 
     """
-    def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str=''):        
+    def __init__(self,cmd:str,root:bool=False,server:str='',listen:bool=False,keyfile:str='',user:str='',flags:dict={}):        
         self.iter = listen
         self.__cmd = cmd
         self.__root = root
         self.shell = True
-        self.__root_cmd = '''ssh -i  {user_key} {user}@{server} "sudo su root -c '{cmd}'"'''.format(**{
+        self.__root_cmd = '''ssh -i  {user_key} {flags} {user}@{server} "sudo su root -c '{cmd}'"'''.format(**{
             "user_key":keyfile,
             "user":user,
             'server': server,
-            "cmd":self.__cmd
+            "cmd":self.__cmd,
+            "flags":"".join([f"{x} {flags[x]}" for x in flags])
         })
         pass
     def __enter__(self):
