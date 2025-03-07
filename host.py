@@ -1,7 +1,7 @@
 import re
 
 from Remote.shell import cmd as rs_cmd
-
+from Remote.shell import scp as rs_scp
 
 class host:
      
@@ -14,6 +14,9 @@ class host:
 
     def cmd(self,cmd,ssh_flags:dict={}):
         return rs_cmd(cmd,True,self.server,keyfile=self.keyfile,user=self.user,ssh_flags=ssh_flags)
+
+    def scp(self,local_path,remote_path,ssh_flags:dict={}):
+        return rs_scp(local_path,remote_path,self.server, keyfile=self.keyfile,user=self.user,ssh_flags=ssh_flags)
 
     def __bool__(self):
         return self.__self_reachable__()
