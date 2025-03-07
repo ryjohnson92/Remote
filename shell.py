@@ -96,3 +96,20 @@ ________________________________________________________________________________
 
 
     pass
+    
+class scp(cmd):
+    def __init__(self,local_path,remote_path,server:str='',keyfile:str='',user:str='',ssh_flags:dict={}):
+        super().__init__("",True,server,False,keyfile,user,{})
+        self.flags = [f"{x} {ssh_flags[x]}" for x in ssh_flags]
+        self.__root_cmd = f"scp {''.join(self.flags)} -i {keyfile}  {local_path} {user}@{server}:{remote_path}"
+    pass
+
+    def __enter__(self):
+        try:
+            self.process = subprocess.Popen(self.__root_cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
+            text = self.process.stdout.read()
+            retcode = self.process.wait()
+            return True
+        except Exception as err:
+            print(err)
+            return False
