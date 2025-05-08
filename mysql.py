@@ -17,7 +17,20 @@ class connection:
         
     def __enter__(self):
         return self.query()
-    
+        
+    def call_proc(self,proc,args=[]):
+        try:
+            self.cur.callproc(proc,args)
+            results = []
+            for result in self.cur.stored_results():
+                result = result.fetchall()
+                for item in result:
+                    results.append(item)              
+            return results
+        except Exception as err:
+            print(err)
+            print('^^ {}'.format(proc))
+            
     def __exit__(self,a,b,c):
         try: 
             self.cur.close()
