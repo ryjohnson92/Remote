@@ -4,11 +4,12 @@ class connection:
     """
         Handles connecting to mysql database
     """
-    def __init__(self,payload,host:str='',user:str='',password:str='',port:int=3306):
+    def __init__(self,payload,host:str='',user:str='',password:str='',port:int=3306, buffered:bool=True):
         self._host = host
         self._user = user
         self._pwd = password
         self._port = port
+        self._buffered = buffered
         self.payload = payload
         
     def __enter__(self):
@@ -20,7 +21,7 @@ class connection:
                 port=self._port
             )
             self.conn.autocommit = True
-            self.cur = self.conn.cursor(buffered=True)
+            self.cur = self.conn.cursor(buffered=self._buffered)
             self._results = self.query()
             return self._results
         except mysql.connector.Error as err:
