@@ -5,19 +5,31 @@ class connection:
         Handles connecting to mysql database
     """
     def __init__(self,payload,host:str='',user:str='',password:str='',port:int=3306):
-        self.conn = mysql.connector.connect(
-            host=host ,
-            user=user,
-            password=password,
-            port= port
-        )
-        self.conn.autocommit = True
-        self.cur = self.conn.cursor()
+        self._host = host
+        self._user = user
+        self._pwd = password
+        self._port = port
         self.payload = payload
         
     def __enter__(self):
-        return self.query()
-        
+        try:
+            self.conn = mysql.connector.connect(
+                host=self._host,
+                user=self._user,
+                password=self._pwd,
+                port=self._port
+            )
+            self.conn.autocommit = True
+            self.cur = self.conn.cursor(buffered=True)
+            self._results = self.query()
+            return self._results
+        except mysql.connector.Error as err:
+            self._results = None 
+            raise 
+        except Exception as err:
+            self._results = None
+            raise       
+
     def call_proc(self,proc,args=[]):
         try:
             self.cur.callproc(proc,args)
@@ -36,7 +48,20 @@ class connection:
             self.cur.close()
             self.conn.close()
         except: pass
-
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.cur:
+            try:
+                self.cur.close()
+            except mysql.connector.Error as err:
+                print(f"Error closing cursor: {err}")
+            self.cur = None
+        if self.conn:
+            try:
+                self.conn.close()
+            except mysql.connector.Error as err:
+                print(f"Error closing connection: {err}")
+            self.conn = None
+        return False
     @staticmethod
     def help():
         print("""
