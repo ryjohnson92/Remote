@@ -203,7 +203,6 @@ class host:
             self.ssh_manager.start()
             ssh_transport = self.ssh_manager.get_transport()
             if ssh_transport and ssh_transport.is_active():
-                print(int(self.remote_port))
                 self.forwarder = self.LocalPortForwarder(
                     LOCAL_BIND_ADDRESS,
                     int(self.local_port),
