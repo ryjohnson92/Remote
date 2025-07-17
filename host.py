@@ -72,7 +72,6 @@ class host:
 
             def stop(self):
                 """Signals the SSHConnectionManager to terminate."""
-                print("[SSHManager] Signaling SSH manager to stop...")
                 self._stop_event.set()
                 if self._transport and self._transport.is_active():
                     self._transport.close() # Attempt to close transport if active
