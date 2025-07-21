@@ -8,12 +8,13 @@ TUNNEL_GLOBAL_PING_INT = int(os.environ.get('REMOTE_HOST_TUNNEL_GLOBAL_PING_INT'
 
 class host:
     class ssh_tunnel:
+        bw_compat = dict(pubkeys=["rsa-sha2-512", "rsa-sha2-256"])
         class SSHConnectionManager(Thread):
             """
             Manages the lifecycle of the SSH connection.
             Establishes the connection and provides the Paramiko Transport object.
             """
-            def __init__(self, host, port, username, password_or_key_path):
+            def __init__(self, host, port, username, password_or_key_path,bw_compat=[]):
                 super().__init__()
                 self.host = host
                 self.port = port
@@ -24,6 +25,7 @@ class host:
                 self._transport = None
                 self._ssh_client = None
                 self.daemon = True 
+                self.bw_compat = bw_compat
 
             def run(self):
                 try:
@@ -36,7 +38,8 @@ class host:
                             port=self.port,
                             username=self.username,
                             key_filename=self.password_or_key_path,
-                            timeout=TUNNEL_GLOBAL_TIMEOUT
+                            timeout=TUNNEL_GLOBAL_TIMEOUT,
+                            disabled_algorithms=self.bw_compat
                         )
                     else:
                         self._ssh_client.connect(
@@ -44,7 +47,8 @@ class host:
                             port=self.port,
                             username=self.username,
                             password=self.password_or_key_path,
-                            timeout=TUNNEL_GLOBAL_TIMEOUT
+                            timeout=TUNNEL_GLOBAL_TIMEOUT,
+                            disabled_algorithms=self.bw_compat
                         )
                     self._transport = self._ssh_client.get_transport()
                     if not self._transport.is_active():
@@ -171,7 +175,7 @@ class host:
                     except OSError:
                         pass 
 
-        def __init__(self,host:str,local_port,remote_port,ssh_key:str,ssh_user:str,jump_host:str,stop_event:Event=Event()):
+        def __init__(self,host:str,local_port,remote_port,ssh_key:str,ssh_user:str,jump_host:str,bw_compat:bool=False):
             """
             Creates a tunnel to a remote host.
 
@@ -193,13 +197,14 @@ class host:
             self.ssh_key = ssh_key
             self.ssh_user = ssh_user
             self.jump_host = jump_host
-            self.stop_event = stop_event
             self.READY_EVENT = Event()
+            self.bw_compat = bw_compat
 
         def __enter__(self):
             LOCAL_BIND_ADDRESS = '127.0.0.1'
             config = self.get_ssh_config(self.jump_host)
-            self.ssh_manager = self.SSHConnectionManager(config.get("hostname", self.jump_host), int(config.get("port", 22)), config.get("user",self.ssh_user), os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]))
+            print( os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]))
+            self.ssh_manager = self.SSHConnectionManager(config.get("hostname", self.jump_host), int(config.get("port", 22)), config.get("user",self.ssh_user), os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]),self.bw_compat)
             self.ssh_manager.start()
             ssh_transport = self.ssh_manager.get_transport()
             if ssh_transport and ssh_transport.is_active():
@@ -242,14 +247,15 @@ class host:
         self.is_reachable = self.__self_reachable__
         self.ping_peer = self.__self_ping_peer__
     
-    def tunnel(self,remote_host,remote_port,local_port)->tuple:
+    def tunnel(self,remote_host,remote_port,local_port,bw_compat)->tuple:
         return self.ssh_tunnel(
             remote_host,
             local_port,
             remote_port,
             self.keyfile,
             self.user,
-            self.server
+            self.server,
+            bw_compat
         )
 
     def cmd(self,cmd,ssh_flags:dict={},listen:bool=False):
