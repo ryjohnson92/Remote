@@ -19,13 +19,7 @@ class cmd:
         self.shell = True
         assert type(ssh_flags) == dict,'Must pass dict object with flag:value'
         self.flags = [f"{x} {ssh_flags[x]}" for x in ssh_flags]
-        self.__root_cmd = '''ssh -i  {user_key} {flags} {user}@{server} "sudo su root -c '{cmd}'"'''.format(**{
-            "user_key":keyfile,
-            "user":user,
-            'server': server,
-            "cmd":self.__cmd,
-            "flags":" ".join(self.flags)
-        })
+        self.__cmd = f"""ssh -i {keyfile} {" ".join(self.flags)} {user}@{server} "{cmd if not self.__root else f"sudo {cmd}"}" """
         pass
     def __enter__(self):
         """
@@ -35,19 +29,14 @@ class cmd:
             self (undefined):
 
         """
-        if self.__root:
-            self.process = subprocess.Popen(self.__root_cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
-        else:
-            self.process = subprocess.Popen(self.__cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
-        
+        self.process = subprocess.Popen(self.__cmd, encoding='utf-8',universal_newlines=True, shell=self.shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
         if self.iter:
-            # print('Self iter')
-            # self.lines = str(self.process.stdout.read()).split('\n')
             return self
         else:
             text = self.process.stdout.read()
             retcode = self.process.wait()
             return text
+
     def __iter__(self):
         while True:
             line = self.process.stdout.readline()
@@ -57,8 +46,8 @@ class cmd:
         pass
     def __exit__(self,a,b,c):
         try:
-            pass
-            # os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+            self.process.terminate() # If it times out, send SIGTERM
+            self.process.wait()
         except Exception as err:
             print(err)
         pass
