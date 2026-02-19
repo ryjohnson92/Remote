@@ -132,11 +132,11 @@ class host:
                 except Exception as e:
                     print(f"[Forwarder] General error in handler for {client_addr}: {e}")
                 finally:
-                    if client_socket:
-                        client_socket.close()
-                    if remote_channel: 
-                        remote_channel.close()
-
+                    for _ in (remote_channel,client_socket):
+                        try:
+                            _.close()
+                        except (EOFError, socket.timeout):
+                            pass
             def run(self):
                 """Starts the local listening socket for incoming connections."""
                 try:
