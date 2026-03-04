@@ -1,5 +1,5 @@
 import mysql.connector
-
+from contextlib import ExitStack
 class connection:
     """
         Handles connecting to mysql database
@@ -13,23 +13,25 @@ class connection:
         self.payload = payload
         
     def __enter__(self):
-        try:
-            self.conn = mysql.connector.connect(
+        # try:
+        with ExitStack() as stack:
+            self.conn = stack.enter_context(mysql.connector.connect(
                 host=self._host,
                 user=self._user,
                 password=self._pwd,
                 port=self._port
-            )
+            ))
             self.conn.autocommit = True
             self.cur = self.conn.cursor(buffered=self._buffered)
             self._results = self.query()
+            stack.pop_all()
             return self._results
-        except mysql.connector.Error as err:
-            self._results = None 
-            raise 
-        except Exception as err:
-            self._results = None
-            raise       
+        # except mysql.connector.Error as err:
+        #     self._results = None 
+        #     raise 
+        # except Exception as err:
+        #     self._results = None
+        #     raise       
 
     def call_proc(self,proc,args=[]):
         try:
