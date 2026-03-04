@@ -3,6 +3,9 @@ from Local.shell import cmd as L_cmd
 from threading import Thread,Event
 from Remote.shell import cmd as rs_cmd
 from Remote.shell import scp as rs_scp
+from contextlib import ExitStack
+
+
 TUNNEL_GLOBAL_TIMEOUT = int(os.environ.get('REMOTE_HOST_TUNNEL_GLOBAL_TIMEOUT_SECONDS', '30'))
 TUNNEL_GLOBAL_PING_INT = int(os.environ.get('REMOTE_HOST_TUNNEL_GLOBAL_PING_INT', '5'))
 
@@ -202,24 +205,30 @@ class host:
 
         def __enter__(self):
             LOCAL_BIND_ADDRESS = '127.0.0.1'
-            config = self.get_ssh_config(self.jump_host)
-            print( os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]))
-            self.ssh_manager = self.SSHConnectionManager(config.get("hostname", self.jump_host), int(config.get("port", 22)), config.get("user",self.ssh_user), os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]),self.bw_compat)
-            self.ssh_manager.start()
-            ssh_transport = self.ssh_manager.get_transport()
-            if ssh_transport and ssh_transport.is_active():
-                self.forwarder = self.LocalPortForwarder(
-                    LOCAL_BIND_ADDRESS,
-                    int(self.local_port),
-                    self.host,
-                    int(self.remote_port),
-                    ssh_transport
-                )
-                self.forwarder.start()
-            else: raise TimeoutError("Tunnel Did not start")
+            with ExitStack() as stack:
+                config = self.get_ssh_config(self.jump_host)
+                stack.callback(self._cleanup)
+                self.ssh_manager = self.SSHConnectionManager(config.get("hostname", self.jump_host), int(config.get("port", 22)), config.get("user",self.ssh_user), os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]),self.bw_compat)
+                
+                self.ssh_manager.start()
+                ssh_transport = self.ssh_manager.get_transport()
+                if ssh_transport and ssh_transport.is_active():
+                    self.forwarder = self.LocalPortForwarder(
+                        LOCAL_BIND_ADDRESS,
+                        int(self.local_port),
+                        self.host,
+                        int(self.remote_port),
+                        ssh_transport
+                    )
+                    self.forwarder.start()
+                else: raise TimeoutError("Tunnel Did not start")
+                stack.pop_all()
             return self
-
+        
         def __exit__(self,a,b,c):
+            self._cleanup()
+
+        def _cleanup(self):
             if self.forwarder and self.forwarder.is_alive():
                 self.forwarder.stop()
                 self.forwarder.join(timeout=5)
