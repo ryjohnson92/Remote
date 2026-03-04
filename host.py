@@ -207,10 +207,10 @@ class host:
             LOCAL_BIND_ADDRESS = '127.0.0.1'
             with ExitStack() as stack:
                 config = self.get_ssh_config(self.jump_host)
-                stack.callback(self._cleanup)
                 self.ssh_manager = self.SSHConnectionManager(config.get("hostname", self.jump_host), int(config.get("port", 22)), config.get("user",self.ssh_user), os.path.expanduser(config.get("identityfile", [self.ssh_key])[0]),self.bw_compat)
-                
                 self.ssh_manager.start()
+                stack.callback(self.ssh_manager.join, 10)
+                stack.callback(self.ssh_manager.stop, 5)
                 ssh_transport = self.ssh_manager.get_transport()
                 if ssh_transport and ssh_transport.is_active():
                     self.forwarder = self.LocalPortForwarder(
@@ -221,6 +221,8 @@ class host:
                         ssh_transport
                     )
                     self.forwarder.start()
+                    stack.callback(self.forwarder.join, 10)
+                    stack.callback(self.forwarder.stop, 5)
                 else: raise TimeoutError("Tunnel Did not start")
                 stack.pop_all()
             return self
