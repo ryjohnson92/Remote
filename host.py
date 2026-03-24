@@ -137,7 +137,8 @@ class host:
                 finally:
                     for _ in (remote_channel,client_socket):
                         try:
-                            _.close()
+                            if _:
+                                _.close()
                         except (EOFError, socket.timeout):
                             pass
             def run(self):
